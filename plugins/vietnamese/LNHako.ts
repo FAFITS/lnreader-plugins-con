@@ -172,7 +172,7 @@ class HakoPlugin implements Plugin.PluginBase {
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
   site = 'https://ln.hako.vn';
-  version = '1.1.7';
+  version = '1.1.8';
 
   private async fetchHtmlFromMirrors(
     path: string,
@@ -521,7 +521,7 @@ class HakoPlugin implements Plugin.PluginBase {
       options: [
         { label: 'Truyện dịch', value: 'truyendich' },
         { label: 'Truyện sáng tác', value: 'sangtac' },
-        { label: 'Convert', value: 'convert' },
+        { label: 'Truyện AI dịch (Convert)', value: 'convert' },
       ],
     },
     status: {
