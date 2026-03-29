@@ -522,6 +522,54 @@ class HakoPlugin implements Plugin.PluginBase {
 
         parser.write(html);
         parser.end();
+
+        const $ = loadCheerio(html);
+        const infoItems = $('.series-information .info-item');
+        if (infoItems.length) {
+          novel.author = '';
+          novel.artist = '';
+          novel.status = '';
+
+          infoItems.each((_, element) => {
+            const item = $(element);
+            const label = item
+              .find('.info-name')
+              .first()
+              .text()
+              .toLowerCase()
+              .trim();
+            const value = item
+              .find('.info-value')
+              .first()
+              .text()
+              .replace(/\s+/g, ' ')
+              .trim();
+
+            if (!value) {
+              return;
+            }
+
+            if (!novel.author && label.includes('tác giả')) {
+              novel.author = value;
+              return;
+            }
+
+            if (
+              !novel.artist &&
+              (label.includes('họa sĩ') ||
+                label.includes('hoạ sĩ') ||
+                label.includes('artist'))
+            ) {
+              novel.artist = value;
+              return;
+            }
+
+            if (!novel.status && label.includes('tình trạng')) {
+              novel.status = value;
+            }
+          });
+        }
+
         novel.chapters = chapters;
         switch (novel.status?.trim()) {
           case 'Đang tiến hành':
@@ -530,6 +578,8 @@ class HakoPlugin implements Plugin.PluginBase {
           case 'Tạm ngưng':
             novel.status = NovelStatus.OnHiatus;
             break;
+          case 'Đã hoàn thành':
+          case 'Hoàn thành':
           case 'Completed':
             novel.status = NovelStatus.Completed;
             break;
