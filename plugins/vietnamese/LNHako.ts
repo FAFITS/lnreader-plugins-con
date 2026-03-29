@@ -172,7 +172,7 @@ class HakoPlugin implements Plugin.PluginBase {
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
   site = 'https://ln.hako.vn';
-  version = '1.1.6';
+  version = '1.1.7';
 
   private async fetchHtmlFromMirrors(
     path: string,
@@ -242,10 +242,8 @@ class HakoPlugin implements Plugin.PluginBase {
     return this.parseNovels(link);
   }
 
-  async parseNovel(
-    novelPath: string,
-  ): Promise<Plugin.SourceNovel & { totalPages: number }> {
-    const novel: Plugin.SourceNovel & { totalPages: number } = {
+  async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
+    const novel: Plugin.SourceNovel = {
       path: novelPath,
       name: '',
       author: '',
@@ -253,7 +251,6 @@ class HakoPlugin implements Plugin.PluginBase {
       summary: '',
       genres: '',
       status: '',
-      totalPages: 1,
     };
     const html = await this.fetchHtmlFromMirrors(
       novelPath,
