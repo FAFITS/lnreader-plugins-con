@@ -157,13 +157,31 @@ const decodeProtectedContent = (
   );
 };
 
+const parseDmyToIso = (value: string): string | undefined => {
+  const matched = value.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!matched) {
+    return undefined;
+  }
+
+  const day = Number(matched[1]);
+  const month = Number(matched[2]) - 1;
+  const year = Number(matched[3]);
+  const date = new Date(year, month, day);
+
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return date.toISOString();
+};
+
 class HakoPlugin implements Plugin.PluginBase {
   // change id
   id = 'ln.hako.vn';
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
   site = 'https://ln.hako.vn';
-  version = '1.1.1';
+  version = '1.1.2';
   parseNovels(url: string) {
     return fetchApi(url)
       .then(res => res.text())
@@ -379,13 +397,13 @@ class HakoPlugin implements Plugin.PluginBase {
       },
       ontext(data) {
         if (this.readingTime) {
-          const chapterTime = data.split('/').map(x => Number(x));
-          this.tempChapter.releaseTime = new Date(
-            chapterTime[2],
-            chapterTime[1],
-            chapterTime[0],
-          ).toISOString();
-          chapters.push(this.tempChapter);
+          const releaseTime = parseDmyToIso(data);
+          if (releaseTime) {
+            this.tempChapter.releaseTime = releaseTime;
+          }
+          if (this.tempChapter.path && this.tempChapter.name) {
+            chapters.push(this.tempChapter);
+          }
           this.readingTime = false;
           this.tempChapter = {} as Plugin.ChapterItem;
         }
@@ -570,7 +588,73 @@ class HakoPlugin implements Plugin.PluginBase {
           });
         }
 
-        novel.chapters = chapters;
+        const parsedChapters: Plugin.ChapterItem[] = [];
+        let num = 0;
+        let part = 1;
+
+        $('.volume-list').each((_, volumeElement) => {
+          const volume = $(volumeElement)
+            .find('.sect-title')
+            .first()
+            .text()
+            .replace(/\s+/g, ' ')
+            .trim();
+
+          $(volumeElement)
+            .find('.list-chapters > li')
+            .each((__, chapterElement) => {
+              const chapterNode = $(chapterElement).find('.chapter-name a').first();
+              const path = chapterNode.attr('href') || '';
+              const name =
+                chapterNode.attr('title')?.trim() ||
+                chapterNode.text().replace(/\s+/g, ' ').trim();
+
+              if (!path || !name) {
+                return;
+              }
+
+              const matchedChapterNumber = name.match(
+                /(?:chương|chapter)\s*(\d+(?:\.\d+)?)/i,
+              );
+
+              let chapterNumber = num + part / 10;
+              if (matchedChapterNumber) {
+                const parsedNumber = Number(matchedChapterNumber[1]);
+                if (!Number.isNaN(parsedNumber) && parsedNumber > 0) {
+                  if (num === parsedNumber) {
+                    chapterNumber = num + part / 10;
+                    part += 1;
+                  } else {
+                    num = parsedNumber;
+                    part = 1;
+                    chapterNumber = parsedNumber;
+                  }
+                }
+              } else {
+                part += 1;
+              }
+
+              const chapter: Plugin.ChapterItem = {
+                path,
+                name,
+                page: volume,
+                chapterNumber,
+              };
+
+              const releaseTimeRaw = $(chapterElement)
+                .find('.chapter-time')
+                .first()
+                .text();
+              const releaseTime = parseDmyToIso(releaseTimeRaw);
+              if (releaseTime) {
+                chapter.releaseTime = releaseTime;
+              }
+
+              parsedChapters.push(chapter);
+            });
+        });
+
+        novel.chapters = parsedChapters.length ? parsedChapters : chapters;
         switch (novel.status?.trim()) {
           case 'Đang tiến hành':
             novel.status = NovelStatus.Ongoing;
