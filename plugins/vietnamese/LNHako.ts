@@ -172,7 +172,7 @@ class HakoPlugin implements Plugin.PluginBase {
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
   site = 'https://ln.hako.vn';
-  version = '1.1.8';
+  version = '1.1.9';
 
   private async fetchHtmlFromMirrors(
     path: string,
@@ -335,6 +335,7 @@ class HakoPlugin implements Plugin.PluginBase {
         .find('.sect-title')
         .first()
         .text()
+        .replace(/\*/g, '') // ?
         .replace(/\s+/g, ' ')
         .trim();
 
