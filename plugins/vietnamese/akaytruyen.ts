@@ -6,7 +6,7 @@ import { NovelStatus } from '@libs/novelStatus';
 class AkayTruyenPlugin implements Plugin.PagePlugin {
   id = 'akaytruyen.com';
   name = 'AkayTruyen';
-  version = '1.0.0';
+  version = '1.0.1';
   icon = 'src/vi/akaytruyen/favicon.png';
   site = 'https://akaytruyen.com';
 
@@ -14,6 +14,7 @@ class AkayTruyenPlugin implements Plugin.PagePlugin {
     pageNo: number,
     { filters }: Plugin.PopularNovelsOptions<typeof this.filters>,
   ): Promise<Plugin.NovelItem[]> {
+    if (pageNo > 1) return [];
     const res = await fetchApi(this.site);
     const html = await res.text();
     const $ = load(html);
@@ -143,6 +144,7 @@ class AkayTruyenPlugin implements Plugin.PagePlugin {
     searchTerm: string,
     pageNo: number,
   ): Promise<Plugin.NovelItem[]> {
+    if (pageNo > 1) return [];
     const url = new URL('/tim-kiem', this.site);
     url.searchParams.set('key_word', searchTerm);
     const res = await fetchApi(url.toString());
