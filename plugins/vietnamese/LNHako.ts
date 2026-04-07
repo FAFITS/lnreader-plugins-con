@@ -177,7 +177,7 @@ class HakoPlugin implements Plugin.PluginBase {
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
   site = 'https://ln.hako.vn';
-  version = '1.1.10';
+  version = '1.1.11';
 
   private async fetchHtmlFromMirrors(
     path: string,
@@ -206,6 +206,15 @@ class HakoPlugin implements Plugin.PluginBase {
       }
     }
 
+    // Idk why hako returns 403 but fetchjs return 200???
+    const $ = load(fallbackHtml);
+    // Check class: error-page, error-name, error-note
+    const errorPage = $('.error-page');
+    const errorName = errorPage.find('.error-name')?.first()?.text()?.trim();
+    const errorNote = errorPage.find('.error-note')?.first().text()?.trim();
+    if (errorPage?.length && errorName && errorNote) {
+      throw new Error(`Hako error: ${errorName} - ${errorNote}`);
+    }
     return fallbackHtml;
   }
 
@@ -562,3 +571,4 @@ class HakoPlugin implements Plugin.PluginBase {
 }
 
 export default new HakoPlugin();
+
