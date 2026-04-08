@@ -175,8 +175,7 @@ class HakoPlugin implements Plugin.PluginBase {
   id = 'ln.hako.vn';
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
-  site = this.host;
-  version = '1.1.12';
+  version = '1.1.13';
 
   pluginSettings = {
     usingDocln: {
@@ -186,20 +185,20 @@ class HakoPlugin implements Plugin.PluginBase {
     },
   };
 
-  get usingDocln() {
-    return storage.get('usingDocln') === 'true';
+  get site() {
+    return this.usingDocln ? 'https://docln.sbs' : 'https://ln.hako.vn';
   }
 
-  get host() {
-    return this.usingDocln ? 'https://docln.sbs' : 'https://ln.hako.vn';
+  get usingDocln() {
+    return storage.get('usingDocln') === 'true';
   }
 
   private async fetchHtmlFromMirrors(
     path: string,
     validator?: (html: string) => boolean,
   ): Promise<string> {
-    const res = await fetchApi(this.host + path);
-    console.log(`Fetched ${this.host + path} - Status: ${res.status}`);
+    const res = await fetchApi(this.site + path);
+    console.log(`Fetched ${this.site + path} - Status: ${res.status}`);
     const html = res.ok ? await res.text() : '';
     // Idk why hako returns 403 but fetchjs return 200???
     const $ = load(html);
@@ -213,7 +212,7 @@ class HakoPlugin implements Plugin.PluginBase {
     if (html && (!validator || validator(html))) {
       return html;
     } else {
-      throw new Error('Failed to fetch valid HTML from ' + this.host);
+      throw new Error('Failed to fetch valid HTML from ' + this.site);
     }
   }
 
