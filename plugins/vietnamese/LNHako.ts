@@ -175,7 +175,7 @@ class HakoPlugin implements Plugin.PluginBase {
   id = 'ln.hako.vn';
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
-  version = '1.1.14';
+  version = '1.1.15';
 
   pluginSettings = {
     usingDocln: {
@@ -190,7 +190,7 @@ class HakoPlugin implements Plugin.PluginBase {
   }
 
   get usingDocln() {
-    return storage.get('usingDocln').length > 0;
+    return storage.get('usingDocln')?.length > 0;
   }
 
   private async fetchHtmlFromMirrors(
