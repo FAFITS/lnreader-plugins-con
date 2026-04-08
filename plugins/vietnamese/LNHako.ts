@@ -171,11 +171,10 @@ const parseDmyToIso = (value: string): string | undefined => {
 };
 
 class HakoPlugin implements Plugin.PluginBase {
-  // change id
   id = 'ln.hako.vn';
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
-  version = '1.1.16';
+  version = '1.1.17';
 
   pluginSettings = {
     usingDocln: {
@@ -190,7 +189,7 @@ class HakoPlugin implements Plugin.PluginBase {
   }
 
   get usingDocln() {
-    return storage.get('usingDocln')?.length > 0;
+    return storage.get('usingDocln') as boolean;
   }
 
   private async fetchHtmlFromMirrors(
@@ -198,10 +197,7 @@ class HakoPlugin implements Plugin.PluginBase {
     validator?: (html: string) => boolean,
   ): Promise<string> {
     const res = await fetchApi(this.site + path);
-    console.log(
-      `Fetched ${this.site + path} - Status: ${res.status}`,
-      storage.get('usingDocln'),
-    );
+    console.log(`Fetched ${this.site + path} - Status: ${res.status}`);
     const html = res.ok ? await res.text() : '';
     // Idk why hako returns 403 but fetchjs return 200???
     const $ = load(html);
