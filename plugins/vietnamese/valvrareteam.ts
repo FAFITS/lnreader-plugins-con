@@ -9,7 +9,7 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
   name = 'Valvrareteam';
   icon = 'src/vi/valvrareteam/icon.png';
   site = 'https://valvrareteam.net';
-  version = '1.0.4';
+  version = '1.0.5';
 
   api = 'https://val-ssr-2kzit.ondigitalocean.app/api';
 
@@ -67,7 +67,7 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
     return novels;
   }
 
-  async queryNovelStatus($) {
+  queryNovelStatus($) {
     let status: string = NovelStatus.Unknown;
     if ($('.rd-status-completed').length > 0) {
       status = NovelStatus.Completed;
@@ -139,9 +139,11 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
         const loginRequired = $item.find('.login-required-text').length > 0;
 
         if (chapterTitle && chapterPath) {
+          const [dd, mm, yyyy] = date.split("/");
+          const correct = `${yyyy}-${mm}-${dd}`;
           chapters.push({
             name: loginRequired ? '🔒 ' + chapterTitle : chapterTitle,
-            releaseTime: date,
+            releaseTime: correct,
             path: chapterPath,
             page: volumeName || undefined,
           });
@@ -184,11 +186,13 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
     const novelId = this.parseNovelId(html);
     console.log('Extracted novel ID:', novelId);
 
+    console.log('Chapters extracted from main page:', chapters);
+
     if (chapters.length === 0 && novelId) {
       chapters = await this.fallbackGetNovelChapters(novelId);
     }
 
-    const status = await this.queryNovelStatus($);
+    const status = this.queryNovelStatus($);
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
@@ -286,7 +290,6 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
 
   getFrom(str: string, startToken: string, endToken: string) {
     const start = str.indexOf(startToken) + startToken.length;
-    console.log('getFrom:', str.indexOf(startToken));
     if (start < startToken.length) return '';
     const lastHalf = str.substring(start);
     const end = lastHalf.indexOf(endToken);
