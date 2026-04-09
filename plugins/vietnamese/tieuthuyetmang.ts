@@ -131,7 +131,7 @@ class TieuThuyetMangPlugin implements Plugin.PluginBase {
   ): Promise<Plugin.NovelItem[]> {
     void options;
     const response = await fetchApi(
-      `https://be.tieuthuyetmang.com/api/stories?sort=hot&page=${pageNo}&per_page=15`,
+      `https://be.tieuthuyetmang.com/api/stories?sort=hot&page=${pageNo}&per_page=20`,
     );
     const json = (await response.json()) as {
       data: {
