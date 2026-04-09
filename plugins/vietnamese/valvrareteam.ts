@@ -2,14 +2,14 @@ import { fetchApi } from '@libs/fetch';
 import { Plugin } from '@/types/plugin';
 import { load as loadCheerio } from 'cheerio';
 import { defaultCover } from '@libs/defaultCover';
-import { NovelStatus } from '@/types/constants';
+import { NovelStatus } from '@libs/novelStatus';
 
 class ValvrareTeamPlugin implements Plugin.PluginBase {
   id = 'valvrareteam';
   name = 'Valvrareteam';
   icon = 'src/vi/valvrareteam/icon.png';
   site = 'https://valvrareteam.net';
-  version = '1.0.7';
+  version = '1.0.8';
 
   api = 'https://val-ssr-2kzit.ondigitalocean.app/api';
 
