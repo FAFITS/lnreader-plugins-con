@@ -9,10 +9,12 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
   name = 'Valvrareteam';
   icon = 'src/vi/valvrareteam/icon.png';
   site = 'https://valvrareteam.net';
-  version = '1.0.3';
+  version = '1.0.4';
+
+  api = 'https://val-ssr-2kzit.ondigitalocean.app/api';
 
   private allNovels: Plugin.NovelItem[] = [];
-  private isLoaded = this.loadAllNovels();
+  // private isLoaded = this.loadAllNovels();
 
   private normalizeInline(text = '') {
     return text
@@ -25,12 +27,15 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
     pageNo: number,
     { filters, showLatestNovels }: Plugin.PopularNovelsOptions<any>,
   ): Promise<Plugin.NovelItem[]> {
+    return this.fetchPageNovel(pageNo);
+    /*
     await this.isLoaded;
     if (pageNo > 1) {
       return [];
     } else {
       return this.allNovels;
     }
+    */
   }
 
   async fetchPageNovel(pageNo: number): Promise<Plugin.NovelItem[]> {
@@ -174,7 +179,14 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
 
     const thumbnail = $('.rd-cover-image').attr('src') || defaultCover;
 
-    const chapters = this.extractChaptersByVolume($);
+    let chapters = this.extractChaptersByVolume($);
+
+    const novelId = this.parseNovelId(html);
+    console.log('Extracted novel ID:', novelId);
+
+    if (chapters.length === 0 && novelId) {
+      chapters = await this.fallbackGetNovelChapters(novelId);
+    }
 
     const status = await this.queryNovelStatus($);
 
@@ -201,12 +213,18 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
     };
   }
 
+  parseNovelId(html: string) {
+    return this.getFrom(html, '{\\"novel\\":{\\"_id\\":\\"', '\\",');
+  }
+
   async parseChapter(chapterPath: string): Promise<string> {
     const url = this.site + chapterPath;
     const res = await fetchApi(url);
     const html = await res.text();
     const $ = loadCheerio(html);
-
+    if ($('.chapter-content').length === 0) {
+      throw new Error('Không thể tải nội dung chương này. Hãy thử đăng nhập WebView trước.');
+    }
     return $('.chapter-content').first().html()?.trim() ?? '';
   }
 
@@ -224,11 +242,11 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
     } while (n.length > 0);
   }
 
-  async searchNovels(
+  async searchNovelsOld(
     searchTerm: string,
     pageNo: number,
   ): Promise<Plugin.NovelItem[]> {
-    await this.isLoaded;
+    // await this.isLoaded;
     // pagination for search results
     const results = this.allNovels.filter(novel =>
       novel.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -238,6 +256,166 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
     const startIndex = (pageNo - 1) * PAGE_SIZE;
 
     return results.slice(startIndex, startIndex + PAGE_SIZE);
+  }
+
+  async searchNovels(
+    searchTerm: string,
+    pageNo: number,
+  ): Promise<Plugin.NovelItem[]> {
+    const url = `${this.api}/novels/search?title=${encodeURIComponent(searchTerm)}`;
+    const res = await fetchApi(url);
+    const data = await res.json();
+
+    const novels: Plugin.NovelItem[] = data.map(
+      (novel: {
+        _id: string;
+        title: string;
+        author: string;
+        illustration: string;
+        // status, totalChapters
+      }) => ({
+        name: novel.title,
+        cover: novel.illustration || defaultCover,
+        // Idk???
+        path: `/truyen/${this.nomalizeName(novel.title, novel._id)}`,
+      }),
+    );
+
+    return novels;
+  }
+
+  getFrom(str: string, startToken: string, endToken: string) {
+    const start = str.indexOf(startToken) + startToken.length;
+    console.log('getFrom:', str.indexOf(startToken));
+    if (start < startToken.length) return '';
+    const lastHalf = str.substring(start);
+    const end = lastHalf.indexOf(endToken);
+    if (end === -1) {
+      throw new Error(
+        'Could not find endToken `' + endToken + '` in the given string.',
+      );
+    }
+    return lastHalf.substring(0, end);
+  }
+
+  nomalizeName(name: string, id: string) {
+    id = id.slice(-8);
+    const map = {
+      'a': 'aáàảãạăắằẳẵặâấầẩẫậ',
+      'e': 'eéèẻẽẹêếềểễệ',
+      'i': 'iíìỉĩị',
+      'o': 'oóòỏõọôốồổỗộơớờởỡợ',
+      'u': 'uúùủũụưứừửữự',
+      'y': 'yýỳỷỹỵ',
+      'd': 'dđ',
+    };
+    return (
+      name
+        .toLowerCase()
+        .replace(/./g, char => {
+          for (const key in map) {
+            if (map[key].includes(char)) {
+              return key;
+            }
+          }
+          return char;
+        })
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') +
+      '-' +
+      id
+    );
+  }
+
+  async fallbackGetNovelChapters(novelId: string) {
+    const url = `${this.api}/novels/${novelId}/complete?skipViewTracking=true`;
+    const res = await fetchApi(url);
+    const data = (await res.json()) as {
+      novel: {
+        _id: string;
+        title: string;
+        description: string;
+        alternativeTitles: string[];
+        genres: string[];
+        author: string;
+        illustration: string;
+        status: string;
+        createdAt: string;
+        updatedAt: string;
+        views: {
+          total: number;
+          daily: {
+            date: string;
+            count: number;
+            _id: string;
+          }[];
+        };
+        active: {
+          translator: string[];
+          editor: string[];
+          proofreader: never[];
+          pj_user: never[];
+        };
+        novelBalance: number;
+        inactive: {
+          editor: never[];
+          proofreader: never[];
+          translator: never[];
+          pj_user: never[];
+        };
+        novelBudget: number;
+        wordCount: number;
+      };
+      modules: {
+        _id: string;
+        title: string;
+        illustration: string;
+        chapters: {
+          _id: string;
+          moduleId: string;
+          title: string;
+          order: number;
+          createdAt: string;
+          updatedAt: string;
+          mode: string;
+          chapterBalance?: number;
+        }[];
+        order: number;
+      }[];
+      gifts: {
+        _id: string;
+        name: string;
+        icon: string;
+        price: number;
+        order: number;
+        count: number;
+      }[];
+      interactions: {
+        totalLikes: number;
+        totalRatings: number;
+        totalBookmarks: number;
+        averageRating: string;
+        userInteraction: {
+          liked: boolean;
+          rating: null;
+          bookmarked: boolean;
+          followed: boolean;
+        };
+      };
+      contributionHistory: never[];
+    };
+    const chapters: Plugin.ChapterItem[] = [];
+    for (const module of data.modules) {
+      for (const chapter of module.chapters) {
+        chapters.push({
+          name: chapter.title,
+          releaseTime: chapter.createdAt,
+          path: `/truyen/${this.nomalizeName(data.novel.title, data.novel._id)}/chuong/${this.nomalizeName(chapter.title, chapter._id)}`,
+          page: module.title,
+        });
+      }
+    }
+    return chapters;
   }
 
   resolveUrl = (path: string, isNovel?: boolean) =>
