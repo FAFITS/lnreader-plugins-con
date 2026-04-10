@@ -9,6 +9,11 @@ This is a fork of the original repository, containing only my custom plugins and
 - [tieuthuyetmang](https://tieuthuyetmang.com)
 - [truyenfull](https://truyenfull.vision)
 
+### Install URL
+```sh
+https://raw.githubusercontent.com/Yuneko-dev/lnreader-plugins/plugins/v3.0.0/.dist/plugins.min.json
+```
+
 ---
 
 <details>
