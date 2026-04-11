@@ -174,7 +174,7 @@ class HakoPlugin implements Plugin.PluginBase {
   id = 'ln.hako.vn';
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
-  version = '1.1.27';
+  version = '1.1.28';
 
   pluginSettings = {
     usingDocln: {
@@ -834,6 +834,11 @@ const styleHtmlComment = String.raw`<style>
   .ln-comment-item.deleted .ln-comment-content {
     margin: 0;
     padding: 0;
+  }
+  .disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
   }
   .ln-comment-content {
     word-wrap: break-word;
