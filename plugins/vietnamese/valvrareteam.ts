@@ -434,9 +434,6 @@ class ValvrareTeamPlugin implements Plugin.PluginBase {
     }
     return chapters;
   }
-
-  resolveUrl = (path: string, isNovel?: boolean) =>
-    this.site + (isNovel ? path : path);
 }
 
 export default new ValvrareTeamPlugin();
