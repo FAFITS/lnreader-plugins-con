@@ -11,7 +11,7 @@ class NocSyosetu implements Plugin.PagePlugin {
     name = 'NocSyosetu';
     icon = 'src/jp/nocsyosetu/icon.png';
     site = 'https://noc.syosetu.com/';
-    version = '1.0.5';
+    version = '1.1.0';
     headers = {
         'Cookie': 'over18=yes',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -21,12 +21,12 @@ class NocSyosetu implements Plugin.PagePlugin {
     pluginSettings = {
         nocsyosetu_translate: {
             value: false,
-            label: 'Translate Titles & Descriptions (Google Translate)',
+            label: 'Translate Titles & Summaries (Google Translate) - EN Default',
             type: 'Switch',
         },
         nocsyosetu_translateLang: {
             value: 'en',
-            label: 'Target Language (en, vi, th, ...)',
+            label: 'Language (e.g: en, vi, th, ...)',
             type: 'Text',
         },
     };
@@ -116,37 +116,22 @@ class NocSyosetu implements Plugin.PagePlugin {
         sourceLang: string = 'auto',
     ): Promise<string> {
         if (!text) return text;
-
         const lang = (targetLang || storage.get('nocsyosetu_translateLang') || 'en').trim();
         if (lang === sourceLang) return text;
 
         try {
-            const chunks = text.match(/[\s\S]{1,2000}/g) || [text];
-            const translatedChunks = await Promise.all(
-                chunks.map(async (chunk) => {
-                    try {
-                        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${lang}&dt=t&q=${encodeURIComponent(
-                            chunk,
-                        )}&_t=${Date.now()}`;
-                        const res = await fetchApi(url);
-                        if (!res.ok) return chunk;
-
-                        const json = await res.json();
-                        if (json && json[0]) {
-                            const translated = json[0].map((item: any) => item[0]).join('');
-                            if (translated) return translated;
-                        }
-                    } catch (e) {
-                        // ignore
-                    }
-                    return chunk;
-                })
-            );
-            const result = translatedChunks.join('');
-            return result || text;
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${lang}&dt=t&q=${encodeURIComponent(
+                text,
+            )}&_t=${Date.now()}_${lang}`;
+            const res = await fetchApi(url);
+            const json = await res.json();
+            if (json && json[0]) {
+                return json[0].map((item: any) => item[0]).join('');
+            }
         } catch (e) {
-            return text;
+            // ignore error
         }
+        return text;
     }
 
     isJapanese(text: string): boolean {
@@ -216,7 +201,12 @@ class NocSyosetu implements Plugin.PagePlugin {
         const $ = loadCheerio(body);
         const novels = this.parseNovels($);
 
-        if (storage.get('nocsyosetu_translate') && novels.length > 0) {
+        if (novels.length === 0) {
+            throw new Error('Cannot load novels. Please check the age gate in WebView. / 作品をロードできません。WebViewで年齢確認を行ってください。');
+        }
+
+        const translate = storage.get('nocsyosetu_translate');
+        if (translate && novels.length > 0) {
             await Promise.all(
                 novels.map(async (n) => {
                     n.name = await this.translateService(n.name);
@@ -268,7 +258,8 @@ class NocSyosetu implements Plugin.PagePlugin {
         let summary = $('#novel_ex, .p-novel__summary').text().trim();
         let genres = $('meta[name="keywords"]').attr('content') || '';
 
-        if (storage.get('nocsyosetu_translate')) {
+        const translate = storage.get('nocsyosetu_translate');
+        if (translate) {
             name = await this.translateService(name);
             summary = await this.translateService(summary);
             if (genres) {
@@ -347,7 +338,14 @@ class NocSyosetu implements Plugin.PagePlugin {
         const $ = loadCheerio(body);
         const novels = this.parseNovels($);
 
-        if (storage.get('nocsyosetu_translate') && novels.length > 0) {
+        if (novels.length === 0) {
+            if (!body.includes('searchkekka_box') && !body.includes('trackback_list')) {
+                throw new Error('Cannot load results. Please check the age gate in WebView. / 結果をロードできません。WebViewで年齢確認を行ってください。');
+            }
+        }
+
+        const translate = storage.get('nocsyosetu_translate');
+        if (translate && novels.length > 0) {
             await Promise.all(
                 novels.map(async (n) => {
                     n.name = await this.translateService(n.name);
