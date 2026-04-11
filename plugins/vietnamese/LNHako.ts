@@ -174,7 +174,7 @@ class HakoPlugin implements Plugin.PluginBase {
   id = 'ln.hako.vn';
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
-  version = '1.1.21';
+  version = '1.1.22';
 
   pluginSettings = {
     usingDocln: {
@@ -529,7 +529,7 @@ class HakoPlugin implements Plugin.PluginBase {
       commentSection.find('.fas.fa-chevron-down').remove();
       commentSection.find('.ln-comment-page').remove();
 
-      return `<div>\n${chapterText}\n</div>\n<style>${styleHtmlComment}</style>\n${commentSection.prop('outerHTML')}`;
+      return `<div>\n${chapterText}\n</div>\n${styleHtmlComment}\n${commentSection.prop('outerHTML')}`;
     } else {
       return `<div>\n${chapterText}\n</div>`;
     }
@@ -809,6 +809,7 @@ const styleHtmlComment = String.raw`<style>
   .ln-comment .ln-comment-body {
     border-radius: 4px;
     padding: 10px;
+    color: #111111;
   }
   .ln-comment-reply {
     margin-left: 50px;
