@@ -11,7 +11,7 @@ class NocSyosetu implements Plugin.PagePlugin {
     name = 'NocSyosetu';
     icon = 'src/jp/nocsyosetu/icon.png';
     site = 'https://noc.syosetu.com/';
-    version = '1.0.3';
+    version = '1.0.5';
     headers = {
         'Cookie': 'over18=yes',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -26,7 +26,7 @@ class NocSyosetu implements Plugin.PagePlugin {
         },
         nocsyosetu_translateLang: {
             value: 'en',
-            label: 'Target Language (en <default> , vi, th, ...)',
+            label: 'Target Language (en, vi, th, ...)',
             type: 'Text',
         },
     };
@@ -70,7 +70,6 @@ class NocSyosetu implements Plugin.PagePlugin {
                 ],
             },
             scope: {
-                //&title=1&ex=1&keyword=1&wname=1
                 label: getLabel('検索範囲', 'Search Scope'),
                 type: FilterTypes.CheckboxGroup,
                 value: [],
@@ -82,7 +81,6 @@ class NocSyosetu implements Plugin.PagePlugin {
                 ],
             },
             tags: {
-                //& sasie=1-&ispickup=1&iszankoku=1&isbl=1&isgl=1&istensei=1&istenni=1
                 label: getLabel('特殊タグ', 'Special Tags'),
                 type: FilterTypes.CheckboxGroup,
                 value: [],
@@ -97,7 +95,6 @@ class NocSyosetu implements Plugin.PagePlugin {
                 ],
             },
             tag: {
-                // &stop=1&notzankoku=1&notbl=1&notgl=1&nottensei=1&nottenni=1
                 label: getLabel('除外タグ', 'Exclude Tags'),
                 type: FilterTypes.CheckboxGroup,
                 value: [],
@@ -115,27 +112,74 @@ class NocSyosetu implements Plugin.PagePlugin {
 
     async translateService(
         text: string,
-        targetLang: string = storage.get('nocsyosetu_translateLang') || 'en',
-        sourceLang: string = 'ja'
+        targetLang?: string,
+        sourceLang: string = 'auto',
     ): Promise<string> {
         if (!text) return text;
+
+        const lang = (targetLang || storage.get('nocsyosetu_translateLang') || 'en').trim();
+        if (lang === sourceLang) return text;
+
         try {
-            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(
-                text,
-            )}`;
-            const res = await fetchApi(url);
-            const json = await res.json();
-            if (json && json[0]) {
-                return json[0].map((item: any) => item[0]).join('');
-            }
+            const chunks = text.match(/[\s\S]{1,2000}/g) || [text];
+            const translatedChunks = await Promise.all(
+                chunks.map(async (chunk) => {
+                    try {
+                        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${lang}&dt=t&q=${encodeURIComponent(
+                            chunk,
+                        )}&_t=${Date.now()}`;
+                        const res = await fetchApi(url);
+                        if (!res.ok) return chunk;
+
+                        const json = await res.json();
+                        if (json && json[0]) {
+                            const translated = json[0].map((item: any) => item[0]).join('');
+                            if (translated) return translated;
+                        }
+                    } catch (e) {
+                        // ignore
+                    }
+                    return chunk;
+                })
+            );
+            const result = translatedChunks.join('');
+            return result || text;
         } catch (e) {
-            // ignore error
+            return text;
         }
-        return text;
     }
 
     isJapanese(text: string): boolean {
         return /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(text);
+    }
+
+    private parseNovels($: any): Plugin.NovelItem[] {
+        const novels: Plugin.NovelItem[] = [];
+
+        $('.searchkekka_box, .trackback_list').each((i: number, el: any) => {
+            const $el = $(el);
+            const titleAnchor = $el.find('.novel_h a, .trackback_listdiv a, a.tl').first();
+            if (titleAnchor.length === 0) return;
+
+            const name = titleAnchor.text().trim().replace(/\([^)]*\)$/, '').trim();
+            let novelUrl = titleAnchor.attr('href');
+
+            if (name && novelUrl) {
+                if (!novelUrl.startsWith('http')) {
+                    novelUrl = novelUrl.startsWith('/')
+                        ? `https://novel18.syosetu.com${novelUrl}`
+                        : `https://novel18.syosetu.com/${novelUrl}`;
+                }
+
+                novels.push({
+                    name,
+                    path: novelUrl,
+                    cover: defaultCover,
+                });
+            }
+        });
+
+        return novels;
     }
 
     async popularNovels(
@@ -152,7 +196,7 @@ class NocSyosetu implements Plugin.PagePlugin {
             (Array.isArray(filters.tags.value) && filters.tags.value.length > 0) ||
             (Array.isArray(filters.tag.value) && filters.tag.value.length > 0)
         )) {
-            url = `${this.site}search/search/?p=${pageNo}`;
+            url = `${this.site}search/search/search.php?order_former=search&p=${pageNo}&word=`;
             if (filters.order.value) url += `&order=${filters.order.value}`;
             if (filters.type.value) url += `&type=${filters.type.value}`;
             if (Array.isArray(filters.scope?.value)) {
@@ -170,29 +214,7 @@ class NocSyosetu implements Plugin.PagePlugin {
         const body = await result.text();
 
         const $ = loadCheerio(body);
-        const novels: Plugin.NovelItem[] = [];
-
-        $('.trackback_list').each((i, el) => {
-            const $el = $(el);
-            const titleAnchor = $el.find('.trackback_listdiv a').first();
-
-            const name = titleAnchor.text().trim().replace(/\([^)]*\)$/, '').trim();
-            let novelUrl = titleAnchor.attr('href');
-
-            if (name && novelUrl) {
-                if (!novelUrl.startsWith('http')) {
-                    novelUrl = novelUrl.startsWith('/')
-                        ? `https://novel18.syosetu.com${novelUrl}`
-                        : `https://novel18.syosetu.com/${novelUrl}`;
-                }
-
-                novels.push({
-                    name: name,
-                    path: novelUrl,
-                    cover: defaultCover,
-                });
-            }
-        });
+        const novels = this.parseNovels($);
 
         if (storage.get('nocsyosetu_translate') && novels.length > 0) {
             await Promise.all(
@@ -301,7 +323,7 @@ class NocSyosetu implements Plugin.PagePlugin {
             finalSearchTerm = await this.translateService(searchTerm, 'ja', 'auto');
         }
 
-        let url = `${this.site}search/search/?word=${encodeURIComponent(
+        let url = `${this.site}search/search/search.php?order_former=search&word=${encodeURIComponent(
             finalSearchTerm,
         )}&p=${pageNo}`;
 
@@ -323,39 +345,7 @@ class NocSyosetu implements Plugin.PagePlugin {
         const body = await result.text();
 
         const $ = loadCheerio(body);
-
-        const novels: Plugin.NovelItem[] = [];
-
-        $('.searchkekka_box').each((i, el) => {
-            const $el = $(el);
-            const titleAnchor = $el.find('.novel_h a').first();
-            const name = titleAnchor.text().trim();
-            const novelUrl = titleAnchor.attr('href');
-
-            if (name && novelUrl) {
-                novels.push({
-                    name,
-                    path: novelUrl.startsWith('http') ? novelUrl : `https://novel18.syosetu.com${novelUrl}`,
-                    cover: defaultCover,
-                });
-            }
-        });
-        if (novels.length === 0) {
-            $('.trackback_list').each((i, el) => {
-                const firstDiv = $(el).find('.trackback_listdiv').first();
-                const titleAnchor = firstDiv.find('a').first();
-                const name = titleAnchor.text().trim();
-                const novelUrl = titleAnchor.attr('href');
-
-                if (name && novelUrl) {
-                    novels.push({
-                        name,
-                        path: novelUrl.startsWith('http') ? novelUrl : `https://novel18.syosetu.com${novelUrl}`,
-                        cover: defaultCover,
-                    });
-                }
-            });
-        }
+        const novels = this.parseNovels($);
 
         if (storage.get('nocsyosetu_translate') && novels.length > 0) {
             await Promise.all(
