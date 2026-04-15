@@ -9,13 +9,16 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
   name = 'Pixiv Novel';
   icon = 'src/jp/pixivnovel/icon.png';
   site = 'https://www.pixiv.net';
-  version = '1.0.2';
+  version = '1.0.3';
 
-  imageRequestInit = {
-    headers: {
-      'Referer': 'https://www.pixiv.net',
-    },
-  };
+  get imageRequestInit() {
+    return {
+      headers: {
+        'Referer': 'https://www.pixiv.net',
+      },
+      method: 'GET',
+    };
+  }
 
   private headers: Record<string, string> = {
     'User-Agent':
