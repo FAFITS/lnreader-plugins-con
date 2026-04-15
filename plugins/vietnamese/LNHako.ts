@@ -174,7 +174,7 @@ class HakoPlugin implements Plugin.PluginBase {
   id = 'ln.hako.vn';
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
-  version = '1.1.30';
+  version = '1.1.31';
 
   pluginSettings = {
     usingDocln: {
@@ -502,7 +502,7 @@ class HakoPlugin implements Plugin.PluginBase {
 
     const chapterText = (chapterContainer.html() || '')
       .replace(/<p id="\d+">/g, '<p>')
-      .replace(/\[note\d+]/gi, '')
+      // .replace(/\[note\d+]/gi, '')
       .replace(/&nbsp;/g, '')
       .trim();
 
