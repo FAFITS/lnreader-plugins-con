@@ -12,7 +12,7 @@ class BaoMoiPlugin implements Plugin.PluginBase {
   name = 'Báo Mới';
   icon = 'src/vi/baomoi/icon.png';
   site = 'https://baomoi.com';
-  version = '1.0.2';
+  version = '1.0.3';
   filters: Filters = {
     page: {
       label: 'Tìm theo trang',
@@ -208,7 +208,9 @@ class BaoMoiPlugin implements Plugin.PluginBase {
       const nextDataScript = $('#__NEXT_DATA__').html();
       if (nextDataScript) {
         const nextData = JSON.parse(nextDataScript);
-        const items = nextData.props.pageProps.resp.data.content.items;
+        const items =
+          nextData.props.pageProps.resp.data.content.items ||
+          nextData.props.pageProps.resp.data.content.sections.flatMap((section: any) => section.items);
         console.log('Parsed __NEXT_DATA__:', items);
         items.forEach((item: any) => {
           if (item.title && item.url) {
