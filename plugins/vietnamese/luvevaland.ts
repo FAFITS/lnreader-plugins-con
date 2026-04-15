@@ -10,7 +10,7 @@ class LuvevalandPlugin implements Plugin.PluginBase {
   name = 'Luvevaland';
   icon = 'src/vi/luvevaland/icon.png';
   site = 'https://luvevaland.co';
-  version = '1.0.0';
+  version = '1.0.1';
   filters: Filters | undefined = undefined;
 
   async popularNovels(
@@ -103,10 +103,10 @@ class LuvevalandPlugin implements Plugin.PluginBase {
 
         if (iconAlt === 'Chương hp-mp') {
           chapterName = `🔒 ${chapterName}`;
-          chapterPath = `/login-lock`;
+          chapterPath = `/login-lock#${index}&${novelPath}`;
         } else if (iconAlt === 'Chương chờ') {
           chapterName = `⏳ ${chapterName}`;
-          chapterPath = `/time-lock`;
+          chapterPath = `/time-lock#${index}&${novelPath}`;
         }
 
         if (chapterPath === '/') return;
@@ -147,11 +147,11 @@ class LuvevalandPlugin implements Plugin.PluginBase {
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
-    if (chapterPath === '/login-lock') {
+    if (chapterPath.includes('/login-lock')) {
       throw new Error(
         'This chapter is locked. Please log in to view its content.',
       );
-    } else if (chapterPath === '/time-lock') {
+    } else if (chapterPath.includes('/time-lock')) {
       throw new Error(
         'This chapter is not yet available. Please check back later.',
       );
