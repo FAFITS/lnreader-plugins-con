@@ -9,7 +9,7 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
   name = 'Pixiv Novel';
   icon = 'src/jp/pixivnovel/icon.png';
   site = 'https://www.pixiv.net';
-  version = '1.0.1';
+  version = '1.0.2';
 
   imageRequestInit = {
     headers: {
@@ -32,23 +32,13 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
     const json = await result.json();
     if (json.error) {
       if (json.message === 'Ranking could not be found. Please try again.') {
-        throw new Error('Please log in to Pixiv via WebView to view R-18 content. / R-18コンテンツを閲覧するには、WebViewからPixivにログインしてください。');
+        throw new Error(
+          'Please log in to Pixiv via WebView to view R-18 content. / R-18コンテンツを閲覧するには、WebViewからPixivにログインしてください。',
+        );
       }
       throw new Error(json.message || 'Pixiv API error');
     }
     return json.body;
-  }
-
-  /**
-   * Convert pixiv novel text formatting to HTML
-   * Pixiv uses custom tags like [chapter:Title], [newpage], [pixivimage:id], [rb: text > ruby]
-   */
-  private pixivContentToHtml(content: string): string {
-    let html = content;
-
-    html = html.replace(/\n/g, '<br/>');
-
-    return html;
   }
 
   /**
@@ -63,22 +53,25 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
 
     const mode = options.filters?.mode?.value || 'safe';
     const genre = options.filters?.genre?.value || 'all';
-    let url: string;
-    if ((mode == 'safe' && (genre == 'male' || genre == 'female')) || (mode == 'r18' && (genre == 'all' || genre == 'for_kids'))) {
+    if (
+      (mode == 'safe' && (genre == 'male' || genre == 'female')) ||
+      (mode == 'r18' && (genre == 'all' || genre == 'for_kids'))
+    ) {
       throw new Error(
-        `Không tồn tại thể loại ${genre} trong mode : ${mode == 'safe' ? 'all ages' : 'r18'}`
+        `The genre ${genre} does not exist in mode: ${mode == 'safe' ? 'all ages' : 'r18'}`,
       );
     }
-    url = `${this.site}/ajax/genre/novel/${genre}?mode=${mode}&lang=en`;
-    const body = await this.fetchJson(url);
+    const url = new URL(`${this.site}/ajax/genre/novel/${genre}`);
+    url.searchParams.set('mode', mode);
+    url.searchParams.set('lang', 'en');
+    const body = await this.fetchJson(url.toString());
+
     const novels: Plugin.NovelItem[] = [];
     const seriesList = body?.thumbnails?.novelSeries || [];
 
     for (const series of seriesList) {
       const coverUrl =
-        series.cover?.urls?.['480mw'] ||
-        series.cover?.urls?.['240mw'] ||
-        '';
+        series.cover?.urls?.['480mw'] || series.cover?.urls?.['240mw'] || '';
       const newURL = '/' + coverUrl;
       const isOneshot = series.isOneshot === true;
       const path = isOneshot
@@ -153,7 +146,8 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
     );
 
     // Calculate total pages
-    const totalEpisodes = seriesBody.publishedContentCount || seriesBody.total || chapters.length;
+    const totalEpisodes =
+      seriesBody.publishedContentCount || seriesBody.total || chapters.length;
     const totalPages = Math.max(1, Math.ceil(totalEpisodes / 30));
 
     // Build tag/genre list
@@ -192,9 +186,7 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
     );
 
     const coverUrl = body.coverUrl || '';
-    const tags: string[] = (body.tags?.tags || []).map(
-      (t: any) => t.tag || '',
-    );
+    const tags: string[] = (body.tags?.tags || []).map((t: any) => t.tag || '');
 
     // Clean summary
     let summary = body.description || '';
@@ -210,7 +202,7 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
       status: NovelStatus.Completed,
       chapters: [
         {
-          name: body.title || 'Chapter 1',
+          name: body.title || 'Oneshot',
           path: `/ajax/novel/${novelId}`,
           releaseTime: body.createDate || '',
         },
@@ -222,10 +214,7 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
   /**
    * Parse additional pages of chapters for series with 30+ chapters
    */
-  async parsePage(
-    novelPath: string,
-    page: string,
-  ): Promise<Plugin.SourcePage> {
+  async parsePage(novelPath: string, page: string): Promise<Plugin.SourcePage> {
     const seriesMatch = novelPath.match(/\/novel\/series\/(\d+)/);
     if (!seriesMatch) return { chapters: [] };
 
@@ -264,7 +253,7 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
     );
 
     const content = body?.content || '';
-    return this.pixivContentToHtml(content);
+    return content.replace(/\n/g, '<br/>');
   }
 
   /**
@@ -303,11 +292,6 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
     return novels;
   }
 
-  resolveUrl(path: string, isNovel?: boolean): string {
-    if (path.startsWith('http')) return path;
-    return `${this.site}${path}`;
-  }
-
   filters = {
     mode: {
       type: FilterTypes.Picker,
@@ -323,10 +307,19 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
       label: 'Genre',
       value: 'all',
       options: [
-        { label: 'All Genres (すべて) - Only All Ages (全年齢のみ)', value: 'all' },
+        {
+          label: 'All Genres (すべて) - Only All Ages (全年齢のみ)',
+          value: 'all',
+        },
         { label: 'Romance (恋愛)', value: 'romance' },
-        { label: 'Isekai Fantasy (異世界ファンタジー)', value: 'isekai_fantasy' },
-        { label: 'Contemporary Fantasy (現代ファンタジー)', value: 'contemporary_fantasy' },
+        {
+          label: 'Isekai Fantasy (異世界ファンタジー)',
+          value: 'isekai_fantasy',
+        },
+        {
+          label: 'Contemporary Fantasy (現代ファンタジー)',
+          value: 'contemporary_fantasy',
+        },
         { label: 'Mystery (ミステリー)', value: 'mystery' },
         { label: 'Horror (ホラー)', value: 'horror' },
         { label: 'Sci-Fi (SF)', value: 'sci-fi' },
@@ -335,14 +328,26 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
         { label: 'Historical pieces (歴史・時代)', value: 'historical_pieces' },
         { label: 'BL (ボーイズラブ)', value: 'bl' },
         { label: 'Yuri (百合)', value: 'yuri' },
-        { label: 'For Kids (童話) - Only All Ages (全年齢のみ)', value: 'for_kids' },
+        {
+          label: 'For Kids (童話) - Only All Ages (全年齢のみ)',
+          value: 'for_kids',
+        },
         { label: 'Poetry (詩)', value: 'poetry' },
-        { label: 'Essays/non-fiction (ノンフィクション)', value: 'non_fiction' },
+        {
+          label: 'Essays/non-fiction (ノンフィクション)',
+          value: 'non_fiction',
+        },
         { label: 'Screenplays (脚本)', value: 'screenplays' },
         { label: 'Reviews (レビュー)', value: 'reviews' },
         { label: 'Other (その他)', value: 'other' },
-        { label: 'Popular with male (男性に人気) - Only R18 (R18のみ)', value: 'male' },
-        { label: 'Popular with female (女性に人気) - Only R18 (R18のみ)', value: 'female' },
+        {
+          label: 'Popular with male (男性に人気) - Only R18 (R18のみ)',
+          value: 'male',
+        },
+        {
+          label: 'Popular with female (女性に人気) - Only R18 (R18のみ)',
+          value: 'female',
+        },
       ],
     },
   } satisfies Filters;

@@ -20,7 +20,7 @@ class TieuThuyetMangPlugin implements Plugin.PluginBase {
   name = 'Tiểu Thuyết Mạng';
   icon = 'src/vi/tieuthuyetmang/icon.png';
   site = 'https://tieuthuyetmang.com';
-  version = '1.0.1';
+  version = '1.0.2';
 
   imageRequestInit: Plugin.ImageRequestInit = {
     headers: {
@@ -226,7 +226,7 @@ class TieuThuyetMangPlugin implements Plugin.PluginBase {
     */
 
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
-    const response = await fetchApi(this.resolveUrl(novelPath));
+    const response = await fetchApi(new URL(novelPath, this.site).toString());
     const html = await response.text();
     const $ = loadCheerio(html);
 
@@ -288,7 +288,7 @@ class TieuThuyetMangPlugin implements Plugin.PluginBase {
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
-    const response = await fetchApi(this.resolveUrl(chapterPath));
+    const response = await fetchApi(new URL(chapterPath, this.site).toString());
     const html = await response.text();
     const $ = loadCheerio(html);
 
@@ -336,8 +336,6 @@ class TieuThuyetMangPlugin implements Plugin.PluginBase {
 
     return novels;
   }
-
-  resolveUrl = (path: string) => new URL(path, this.site).toString();
 
   filters = undefined;
 }

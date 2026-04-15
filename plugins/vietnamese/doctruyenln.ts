@@ -9,7 +9,7 @@ class DocTruyenLNPlugin implements Plugin.PagePlugin {
     name = 'DocTruyenLN';
     icon = 'src/vi/doctruyenln/icon.png';
     site = 'https://quykiep.com';
-    version = '1.0.5';
+    version = '1.0.6';
 
     imageRequestInit = {
         headers: {
@@ -87,7 +87,7 @@ class DocTruyenLNPlugin implements Plugin.PagePlugin {
 
         const canonical = body.match(/<link\s+rel="canonical"\s+href="([^"]+)"\s*\/?>/i)?.[1];
         if (canonical === `${this.site}/`) {
-            throw new Error('Không thể truy cập truyện này do Website đã chặn!');
+            throw new Error('404 Not Found');
         }
 
         const loadedCheerio = parseHTML(body);
