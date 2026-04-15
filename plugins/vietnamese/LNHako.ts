@@ -174,7 +174,7 @@ class HakoPlugin implements Plugin.PluginBase {
   id = 'ln.hako.vn';
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
-  version = '1.1.33';
+  version = '1.1.34';
 
   pluginSettings = {
     usingDocln: {
@@ -515,7 +515,7 @@ class HakoPlugin implements Plugin.PluginBase {
       .trim();
 
     if (!chapterText) {
-      return "";
+      return '';
     }
 
     if (this.showChapterComments) {
@@ -619,7 +619,7 @@ class HakoPlugin implements Plugin.PluginBase {
     sort: {
       type: FilterTypes.Picker,
       label: 'Sắp xếp',
-      value: 'top',
+      value: 'topthang',
       options: [
         { label: 'A-Z', value: 'tentruyen' },
         { label: 'Z-A', value: 'tentruyenza' },
