@@ -10,7 +10,7 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
   name = 'Pixiv Novel';
   icon = 'src/jp/pixivnovel/icon.png';
   site = 'https://www.pixiv.net';
-  version = '1.0.5';
+  version = '1.0.6';
 
   pluginSettings = {
     pixiv_translate: {
@@ -356,7 +356,11 @@ class PixivNovelPlugin implements Plugin.PagePlugin {
     );
 
     const content = body?.content || '';
-    return `<div>${content.replace(/\n/g, '<br/>')}</div>`;
+    return `<div>${content
+      .split('\n')
+      .filter((line: string) => line.trim().length > 0)
+      .map((line: string) => `<p>${line.trim()}</p>`)
+      .join('<br/>')}</div>`;
   }
 
   /**
