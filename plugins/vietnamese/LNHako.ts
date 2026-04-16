@@ -174,7 +174,7 @@ class HakoPlugin implements Plugin.PluginBase {
   id = 'ln.hako.vn';
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
-  version = '1.1.34';
+  version = '1.1.35';
 
   pluginSettings = {
     usingDocln: {
@@ -497,7 +497,10 @@ class HakoPlugin implements Plugin.PluginBase {
     $('a').each((_, el) => {
       const href = $(el).attr('href');
       if (href && !href.startsWith('#')) {
-        $(el).attr('href', '#skip-link').attr('target', null);
+        $(el).attr('href', '#skip-link');
+        if ($(el).attr('target')) {
+          $(el).remove();
+        }
       }
     });
 

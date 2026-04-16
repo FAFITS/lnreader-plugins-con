@@ -9,6 +9,8 @@ import https from 'https';
 import http from 'http';
 import { lookup, LookupOptions } from 'node:dns';
 
+const USING_DOH = false;
+
 type DNSJSON = {
   Question: Question[];
   Answer: Answer[];
@@ -106,8 +108,8 @@ const customLookup = (
     });
 };
 
-const httpAgent = new http.Agent({ lookup: customLookup });
-const httpsAgent = new https.Agent({ lookup: customLookup });
+const httpAgent = new http.Agent({ lookup: USING_DOH ? customLookup : undefined });
+const httpsAgent = new https.Agent({ lookup: USING_DOH ? customLookup : undefined });
 
 const proxy = httpProxy.createProxyServer({});
 
