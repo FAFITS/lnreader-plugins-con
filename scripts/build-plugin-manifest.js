@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import process from 'process';
 import languages from './languages.js';
 import { execSync } from 'child_process';
 import { minify } from './terser.js';
@@ -205,10 +206,9 @@ if (!ONLY_NEW)
 
 // check for broken plugins
 for (let language in languages) {
-  const tsFiles = fs.readdirSync(
-    path.join('./plugins', language.toLocaleLowerCase()),
-  );
-  tsFiles
+  const langPath = path.join('./plugins', language.toLocaleLowerCase());
+  if (!fs.existsSync(langPath)) continue;
+  fs.readdirSync(langPath)
     .filter(f => f.endsWith('.broken.ts'))
     .forEach(fn => {
       console.error(
