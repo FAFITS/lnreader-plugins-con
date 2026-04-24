@@ -203,7 +203,7 @@ class JukaNovelPlugin implements Plugin.PluginBase {
 
         if (!n || !chapter) return "";
 
-        const o = (e: string) => {
+        const contentCipher = (e: string) => {
             if (!e) return null;
             try {
                 const r = decodeBase64ToBytes(e);
@@ -218,12 +218,11 @@ class JukaNovelPlugin implements Plugin.PluginBase {
             }
         };
 
-        //published test toàn null nên bỏ
-        let content = "";
+        let content: string | null = null;
         if (this.preferRaw) {
-            content = o(chapter.raw_content) || o(chapter.translated_content) || "";
+            content = contentCipher(chapter.raw_content);
         } else {
-            content = o(chapter.translated_content) || o(chapter.raw_content) || "";
+            content = contentCipher(chapter.published_content) || contentCipher(chapter.translated_content) || contentCipher(chapter.raw_content);
         }
 
         if (!content) return "";
@@ -262,13 +261,12 @@ class JukaNovelPlugin implements Plugin.PluginBase {
             let notesHtml = '\n<div class="note-reg">';
             notes.forEach((note, index) => {
                 const noteId = index + 1;
-                // Thêm nút [^] để nhảy ngược lên anchor-note-X trong bài
                 notesHtml += `<div id="note${noteId}" class="none"><div class="note-content"><a href="#anchor-note-${noteId}">[^]</a> ${note}</div></div>`;
             });
             notesHtml += '</div>';
             content += notesHtml;
         }
-        content = "<div>" + content + "</div>"; // idk nhưng thêm div cho giống pixiv
+        content = "<div>" + content + "</div>";
         return content;
     }
 
