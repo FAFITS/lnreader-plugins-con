@@ -81,6 +81,24 @@ const utf8BytesToString = (bytes: number[]): string => {
   return out;
 };
 
+function isValidUrl(string: string): boolean {
+  try {
+    new URL(string);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+function urlToPath(url: string): string {
+  if (!isValidUrl(url)) {
+    return url;
+  } else {
+    const parsed = new URL(url);
+    return url.slice(parsed.origin.length);
+  }
+}
+
 const decodeBase64Utf8 = (encoded: string) =>
   utf8BytesToString(decodeBase64ToBytes(encoded));
 
@@ -174,7 +192,7 @@ class HakoPlugin implements Plugin.PluginBase {
   id = 'ln.hako.vn';
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
-  version = '1.1.40';
+  version = '1.1.41';
 
   pluginSettings: Plugin.PluginSettings = {
     usingDocln: {
@@ -241,7 +259,8 @@ class HakoPlugin implements Plugin.PluginBase {
 
     $('.thumb-item-flow').each((_, ele) => {
       const name = $(ele).find('.series-title a').attr('title') || '';
-      const path = $(ele).find('.series-title a').attr('href') || '';
+      let path = $(ele).find('.series-title a').attr('href') || '';
+      path = urlToPath(path);
       const cover = $(ele).find('.img-in-ratio').attr('data-bg') || '';
 
       if (name && path) {
@@ -276,6 +295,7 @@ class HakoPlugin implements Plugin.PluginBase {
   }
 
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
+    novelPath = urlToPath(novelPath);
     const novel: Plugin.SourceNovel = {
       path: novelPath,
       name: '',
@@ -378,7 +398,8 @@ class HakoPlugin implements Plugin.PluginBase {
         .find('.list-chapters > li')
         .each((__, chapterElement) => {
           const chapterNode = $(chapterElement).find('.chapter-name a').first();
-          const path = chapterNode.attr('href') || '';
+          let path = chapterNode.attr('href') || '';
+          path = urlToPath(path);
           const name =
             chapterNode.attr('title')?.trim() ||
             chapterNode.text().replace(/\s+/g, ' ').trim();
@@ -564,6 +585,7 @@ class HakoPlugin implements Plugin.PluginBase {
       this.site + '/tim-kiem?keywords=' + searchTerm + '&page=' + pageNo;
     return this.parseNovels(url);
   }
+
   imageRequestInit: Plugin.ImageRequestInit = {
     headers: {
       Referer: this.site,
