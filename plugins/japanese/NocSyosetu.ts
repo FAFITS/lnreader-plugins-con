@@ -19,7 +19,7 @@ class NocSyosetu implements Plugin.PagePlugin {
     'Referer': 'https://noc.syosetu.com/',
   };
 
-  pluginSettings = {
+  pluginSettings: Plugin.PluginSettings = {
     nocsyosetu_translate: {
       value: false,
       label: 'Translate Titles & Summaries (Google Translate) - EN Default',

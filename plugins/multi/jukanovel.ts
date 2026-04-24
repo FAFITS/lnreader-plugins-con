@@ -94,7 +94,7 @@ class JukaNovelPlugin implements Plugin.PluginBase {
     site = 'https://jukaza.site';
     version = '1.0.0';
 
-    pluginSettings = {
+    pluginSettings: Plugin.PluginSettings = {
         preferRaw: {
             value: false,
             label: 'Ưu tiên hiển thị nội dung gốc (Raw)',
