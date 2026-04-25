@@ -192,7 +192,7 @@ class HakoPlugin implements Plugin.PluginBase {
   id = 'ln.hako.vn';
   name = 'Hako Novel';
   icon = 'src/vi/hakolightnovel/icon.png';
-  version = '1.1.42';
+  version = '1.1.43';
 
   pluginSettings: Plugin.PluginSettings = {
     usingDocln: {
@@ -211,6 +211,12 @@ class HakoPlugin implements Plugin.PluginBase {
       label: 'Hiển thị bình luận ở cuối mỗi chương (thử nghiệm)',
       type: 'Switch',
     },
+    showTitleInfo: {
+      value: false,
+      label:
+        'Hiển thị tên Volume, Chapter và thông tin truyện (giống như Hako)',
+      type: 'Switch',
+    },
   };
 
   get site() {
@@ -227,6 +233,10 @@ class HakoPlugin implements Plugin.PluginBase {
 
   get showChapterComments() {
     return storage.get('showChapterComments') as boolean;
+  }
+
+  get showTitleInfo() {
+    return storage.get('showTitleInfo') as boolean;
   }
 
   private async fetchHtmlFromMirrors(
@@ -386,13 +396,14 @@ class HakoPlugin implements Plugin.PluginBase {
     let part = 1;
 
     $('.volume-list').each((_, volumeElement) => {
-      const volume = $(volumeElement)
-        .find('.sect-title')
-        .first()
-        .text()
-        .replace(/\*/g, '') // ?
-        .replace(/\s+/g, ' ')
-        .trim() + "\u200b"; // hacky
+      const volume =
+        $(volumeElement)
+          .find('.sect-title')
+          .first()
+          .text()
+          .replace(/\*/g, '') // ?
+          .replace(/\s+/g, ' ')
+          .trim() + '\u200b'; // hacky
 
       $(volumeElement)
         .find('.list-chapters > li')
@@ -497,7 +508,7 @@ class HakoPlugin implements Plugin.PluginBase {
     const chapterContainer = $('div#chapter-content').first();
 
     if (!chapterContainer.length) {
-      return 'Không tìm thấy nội dung';
+      return '';
     }
 
     const protectedContent = chapterContainer
@@ -548,6 +559,8 @@ class HakoPlugin implements Plugin.PluginBase {
       return '';
     }
 
+    let output = `<div>\n${chapterText}\n</div>`;
+
     if (this.showChapterComments) {
       // Comment
       const commentSection = $('#chapter-comments').first();
@@ -571,10 +584,26 @@ class HakoPlugin implements Plugin.PluginBase {
       // Remove loading svg
       commentSection.find('.loading').remove();
 
-      return `<div>\n${chapterText}\n</div>\n${styleHtmlComment}\n${commentSection.prop('outerHTML')}`;
-    } else {
-      return `<div>\n${chapterText}\n</div>`;
+      output = `${output}\n${styleHtmlComment}\n${commentSection.prop('outerHTML')}`;
     }
+
+    if (this.showTitleInfo) {
+      const volumeName = `<h2>${$('h2.title-item').first().text().trim()}</h2>`;
+      const chapterName = `<h4>${$('h4.title-item').first().text().trim()}</h4>`;
+      const infoComponent = $('h6.title-item').first();
+      const $link = infoComponent.find('a');
+      if ($link.length > 0) {
+        $link.attr('href', '#chapter-comments');
+      }
+      const $time = infoComponent.find('time');
+      if ($time.length > 0) {
+        $time.attr('class', 'chapter-release-time');
+        $time.text($time.attr('title')!);
+      }
+      output = `<div>${volumeName}${chapterName}<h6>${infoComponent.html()}</h6></div>\n${output}`;
+    }
+
+    return output;
   }
 
   async searchNovels(
