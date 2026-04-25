@@ -10,7 +10,7 @@ class LNKuroPlugin implements Plugin.PluginBase {
   name = 'LNKuro';
   icon = 'src/vi/lnkuro/icon.png';
   site = 'https://lnkuro.top';
-  version = '1.0.0';
+  version = '1.0.1';
   filters = {
     genre: {
       label: 'Thể loại',
@@ -153,7 +153,7 @@ class LNKuroPlugin implements Plugin.PluginBase {
 
     webnovelSection.each((i, el) => {
       const w = loadCheerio(el);
-      const volumeName = w('.section-title_kuro').text().trim();
+      const volumeName = w('.section-title_kuro').text().trim() + '\u200b';
       w('.novel_kuro ul.chapter-list_kuro li').each((i, el) => {
         const li = $(el);
         const aTag = li.find('a');
@@ -229,7 +229,7 @@ class LNKuroPlugin implements Plugin.PluginBase {
         return isAdBlock;
       })
       .remove();
-    const chapterContent = chapterElementRaw.html()?.trim()!;
+    const chapterContent = chapterElementRaw.html()!.trim()!;
     if (chapterContent.length <= '<p></p>'.length) return '';
     return chapterContent;
   }
