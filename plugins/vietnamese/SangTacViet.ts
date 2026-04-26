@@ -420,7 +420,7 @@ class SangTacVietPlugin implements Plugin.PluginBase {
       };
       const cookieHeader = this.buildCookieHeader(cookies);
       if (cookieHeader) headers.Cookie = cookieHeader;
-      const chapRes = await fetchApi(apiUrl, {
+      const chapRes = await fetchApi(apiUrl.toString(), {
         method: 'POST',
         headers,
         body: '',
