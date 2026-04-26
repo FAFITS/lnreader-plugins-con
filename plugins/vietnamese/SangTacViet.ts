@@ -381,11 +381,14 @@ class SangTacVietPlugin implements Plugin.PluginBase {
       // continue — server may still recognise the WebView's cookie jar
     }
 
-    const apiUrl =
-      `${SITE}/index.php?bookid=${encodeURIComponent(bookId)}` +
-      `&h=${encodeURIComponent(bookHost)}` +
-      `&c=${encodeURIComponent(chapterId)}` +
-      `&ngmar=readc&sajax=readchapter&sty=1&exts=`;
+    const apiUrl = new URL(`${SITE}/index.php`);
+    apiUrl.searchParams.set('bookid', bookId);
+    apiUrl.searchParams.set('h', bookHost);
+    apiUrl.searchParams.set('c', chapterId);
+    apiUrl.searchParams.set('ngmar', 'readc');
+    apiUrl.searchParams.set('sajax', 'readchapter');
+    apiUrl.searchParams.set('sty', '1');
+    apiUrl.searchParams.set('exts', '');
 
     // Step 2: probe POST that rotates `_ac`. We don't care about the body
     try {
