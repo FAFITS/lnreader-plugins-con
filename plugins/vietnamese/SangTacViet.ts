@@ -4,8 +4,14 @@ import { Plugin } from '@/types/plugin';
 import { NovelStatus } from '@libs/novelStatus';
 import { FilterTypes, Filters } from '@libs/filterInputs';
 import { defaultCover } from '@libs/defaultCover';
+import { storage } from '@libs/storage';
 
 const SITE = 'https://sangtacviet.app';
+
+const GH_UPDATE =
+  'https://raw.githubusercontent.com/sangtacviet/sangtacviet.github.io/main/update.json';
+
+const ALTERNATIVE_DOMAIN = 'https://dns1.stv-appdomain-00000001.org';
 
 // ── Webfont glyph decode ─────────────────────────────
 const GLYPH_MAP: Record<string, string> = {};
@@ -120,13 +126,46 @@ function normalizeChapterHtml(host: string, raw: string): string {
   return text;
 }
 
+function decodeHTMLEntities(str: string) {
+  const entities = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&#x2F;': '/',
+    '&#x60;': '`',
+    '&#x3D;': '=',
+    '&nbsp;': ' ',
+  };
+
+  return str.replace(
+    new RegExp(Object.keys(entities).join('|'), 'g'),
+    match => entities[match as keyof typeof entities],
+  );
+}
+
 class SangTacVietPlugin implements Plugin.PluginBase {
   id = 'sangtacviet';
   name = 'Sáng Tác Việt';
   icon = 'src/vi/sangtacviet/icon.png';
-  site = SITE;
-  version = '1.0.0';
+  get site() {
+    return this.usingAlternativeDomain ? ALTERNATIVE_DOMAIN : SITE;
+  }
+  version = '1.0.1';
   webStorageUtilized = true;
+
+  pluginSettings: Plugin.PluginSettings = {
+    usingAlternativeDomain: {
+      type: "Switch",
+      label: "Sử dụng tên miền thay thế",
+      value: false,
+    }
+  }
+
+  get usingAlternativeDomain(): boolean {
+    return storage.get('usingAlternativeDomain') as boolean;
+  }
 
   parseNovelsFromHTML(html: string): Plugin.NovelItem[] {
     const novels: Plugin.NovelItem[] = [];
@@ -302,6 +341,8 @@ class SangTacVietPlugin implements Plugin.PluginBase {
       }
     }
 
+    novel.summary = decodeHTMLEntities(novel.summary || '');
+
     return novel;
   }
 
@@ -451,10 +492,6 @@ class SangTacVietPlugin implements Plugin.PluginBase {
     url.searchParams.set('p', String(pageNo));
     const html = await fetchText(url.toString());
     return this.parseNovelsFromHTML(html);
-  }
-
-  resolveUrl(path: string, isNovel?: boolean): string {
-    return SITE + path;
   }
 
   filters = {
