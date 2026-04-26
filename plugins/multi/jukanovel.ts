@@ -90,7 +90,7 @@ class JukaNovelPlugin implements Plugin.PluginBase {
   name = 'JukaNovel';
   icon = 'src/multi/jukanovel/icon.png';
   site = 'https://jukaza.site';
-  version = '1.0.1';
+  version = '1.0.2';
 
   pluginSettings: Plugin.PluginSettings = {
     preferRaw: {
@@ -241,20 +241,26 @@ class JukaNovelPlugin implements Plugin.PluginBase {
 
     if (!content) return '';
     const notes: string[] = [];
-    content = content.replace(
-      /<span class="ann-marker"[^>]*>.*?<span class="ann-bubble">(.*?)<\/span><\/span>/gs,
-      (match, noteContent) => {
-        const noteId = notes.length + 1;
-        notes.push(noteContent);
-        return ` <span id="anchor-note-${noteId}" class="note-icon none-print inline note-tooltip" data-tooltip-content="#note${noteId} .note-content" data-note-id="note${noteId}"><i class="fas fa-sticky-note"></i></span><a class="inline-print none" href="#note${noteId}">[note]</a>`;
-      },
+    let regex: RegExp | null = null;
+    try {
+      regex =
+        // @ts-expect-error
+        /<span class="ann-marker"[^>]*>.*?<span class="ann-bubble">(.*?)<\/span><\/span>/gs;
+    } catch {
+      regex =
+        /<span class="ann-marker"[^>]*>[\s\S]*?<span class="ann-bubble">([\s\S]*?)<\/span><\/span>/g;
+    }
+    content = content.replace(regex, (match, noteContent) => {
+      const noteId = notes.length + 1;
+      notes.push(noteContent);
+      return ` <span id="anchor-note-${noteId}" class="note-icon none-print inline note-tooltip" data-tooltip-content="#note${noteId} .note-content" data-note-id="note${noteId}"><i class="fas fa-sticky-note"></i></span><a class="inline-print none" href="#note${noteId}">[note]</a>`;
+    });
+
+    const hasHtmlTags = ['<p>', '<img', '<div'].some(tag =>
+      content?.includes(tag),
     );
-    if (
-      content.indexOf('<p>') !== -1 ||
-      content.indexOf('<img') !== -1 ||
-      content.indexOf('<div') !== -1
-    ) {
-    } else {
+
+    if (!hasHtmlTags) {
       content = content
         .replace(/\t/g, '<br>')
         .split(/\n\n+/)
