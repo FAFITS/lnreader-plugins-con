@@ -440,9 +440,13 @@ class SangTacVietPlugin implements Plugin.PluginBase {
     searchTerm: string,
     pageNo: number,
   ): Promise<Plugin.NovelItem[]> {
-    const url = `${SITE}/io/searchtp/searchBooks?find=${encodeURIComponent(searchTerm)}&minc=0&sort=&tag=&p=${pageNo}`;
-    const res = await fetchApi(url);
-    const html = await res.text();
+    const url = new URL(`${SITE}/io/searchtp/searchBooks`);
+    url.searchParams.set('find', searchTerm);
+    url.searchParams.set('minc', '0');
+    url.searchParams.set('sort', '');
+    url.searchParams.set('tag', '');
+    url.searchParams.set('p', String(pageNo));
+    const html = await fetchText(url.toString());
     return this.parseNovelsFromHTML(html);
   }
 
