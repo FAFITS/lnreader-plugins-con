@@ -1,1 +1,1 @@
-export { gcm } from '@noble/ciphers/aes.js';
+export { gcm, cbc } from '@noble/ciphers/aes.js';

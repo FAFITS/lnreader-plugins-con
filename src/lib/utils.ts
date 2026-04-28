@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+export { utf8ToBytes, bytesToUtf8 } from '@noble/ciphers/utils.js';
+
 /**
  * Merges Tailwind CSS classes with clsx
  */
@@ -34,3 +36,5 @@ export const isUrlAbsolute = (url: string) => {
   }
   return false; // Anything else must be relative
 };
+
+export const Buffer = globalThis.Buffer;
