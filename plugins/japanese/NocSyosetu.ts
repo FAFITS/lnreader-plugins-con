@@ -12,7 +12,7 @@ class NocSyosetu implements Plugin.PagePlugin {
   name = 'NocSyosetu';
   icon = 'src/jp/nocsyosetu/icon.png';
   site = 'https://noc.syosetu.com/';
-  version = '1.1.10';
+  version = '1.1.11';
   headers = {
     'User-Agent':
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -33,15 +33,14 @@ class NocSyosetu implements Plugin.PagePlugin {
   };
 
   async preFetch(url: string) {
-    const origin = new URL(url).origin;
-    const host = new URL(url).host;
+    const urlObj = new URL(url);
     // check over18 cookie
-    const cookies = await get(origin);
+    const cookies = await get(urlObj.origin);
     if (!cookies.over18 || cookies.over18.value !== 'yes') {
-      await set(origin, {
+      await set(urlObj.origin, {
         name: 'over18',
         value: 'yes',
-        domain: `.${host}`,
+        domain: `.${urlObj.host}`,
       });
     }
   }
