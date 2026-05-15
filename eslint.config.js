@@ -190,7 +190,7 @@ export default tseslint.config(
         },
         {
           'selector':
-            "ImportDeclaration[source.value='@libs/utils'] ImportSpecifier[imported.name=/^(Buffer|encodeHtmlEntities|decodeHtmlEntities)$/]",
+            "ImportDeclaration[source.value='@libs/utils'] ImportSpecifier[imported.name=/^(Buffer|encodeHtmlEntities|decodeHtmlEntities|NodeCrypto)$/]",
           'message':
             'WARNING: Plugins using this utility function/variable will only be compatible with LNReader eXtended (No backward compatibility with original LNReader). Please take note and add a warning to the Readme.',
         },

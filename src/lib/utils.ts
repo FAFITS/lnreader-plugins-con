@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import crypto from 'crypto';
 
 export { utf8ToBytes, bytesToUtf8 } from '@noble/ciphers/utils.js';
 
@@ -38,3 +39,5 @@ export const isUrlAbsolute = (url: string) => {
 };
 
 export const Buffer = globalThis.Buffer;
+
+export const NodeCrypto = crypto;

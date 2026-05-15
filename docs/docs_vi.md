@@ -84,7 +84,7 @@ npm run dev:start
 
 - `@libs/aes`: Đã bổ sung `ctr`, `ecb`, `cbc`, `cfb`, `gcmsiv`, `aeskw`, `aeskwp`, `cmac` và `aessiv`, dựa trên thư viện `@noble/ciphers/aes.js`
 
-- `@libs/utils`: Đã bổ sung các hàm `utf8ToBytes`, `bytesToUtf8`; `Buffer` (polyfill, sử dụng như Buffer của Node.js), `encodeHtmlEntities` và `decodeHtmlEntities` dựa trên thư viện `html-entities`
+- `@libs/utils`: Đã bổ sung các hàm `utf8ToBytes`, `bytesToUtf8`; `Buffer` (polyfill, sử dụng như Buffer của Node.js), `NodeCrypto` (polyfill, sử dụng như node:crypto), `encodeHtmlEntities` và `decodeHtmlEntities` dựa trên thư viện `html-entities`
 
 - `@libs/fetch`: xóa bỏ `fetchFile` (do ứng dụng gốc cũng không có)
 
