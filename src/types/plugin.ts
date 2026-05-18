@@ -33,6 +33,8 @@ export namespace Plugin {
     /** Rating out of 5 as float */
     rating?: number;
     chapters?: ChapterItem[];
+    // Novel banner image URL
+    banner?: string;
   } & NovelItem;
 
   export type SourcePage = {
