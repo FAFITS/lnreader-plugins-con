@@ -435,7 +435,7 @@ class NewtokiPlugin implements Plugin.PluginBase {
     const setCookieHeader = nvRes.headers?.get?.('set-cookie') || '';
 
     if (setCookieHeader) {
-      const nvFromHeader = setCookieHeader.match(/nv=([A-Za-z0-9_.\-]+)/);
+      const nvFromHeader = setCookieHeader.match(/nv=([A-Za-z0-9_.-]+)/);
       if (nvFromHeader) {
         nvCookie = nvFromHeader[1];
       }
