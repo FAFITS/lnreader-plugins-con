@@ -20,6 +20,6 @@
   "include": [
     "main/**/*.ts",
     "preload/**/*.ts",
-    "lib/**/*.ts"
+    "lib/**/*"
   ]
 }

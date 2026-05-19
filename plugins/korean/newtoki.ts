@@ -5,7 +5,12 @@ import { defaultCover } from '@libs/defaultCover';
 import { FilterTypes, Filters } from '@libs/filterInputs';
 import { NovelStatus } from '@libs/novelStatus';
 import { storage } from '@libs/storage';
-import { Buffer, NodeCrypto, getUserAgent, encodeHtmlEntities } from '@libs/utils';
+import {
+  Buffer,
+  NodeCrypto,
+  getUserAgent,
+  encodeHtmlEntities,
+} from '@libs/utils';
 import { get, setFromResponse } from '@libs/cookie';
 
 const supportedLanguages: Record<string, string> = {
@@ -88,7 +93,7 @@ class NewtokiPlugin implements Plugin.PluginBase {
   name = 'Newtoki';
   icon = 'src/kr/newtoki/icon.png';
   site = 'https://sbxh1.com';
-  version = '1.0.0';
+  version = '1.0.1';
 
   imageRequestInit: Plugin.ImageRequestInit = {
     headers: {
@@ -120,7 +125,6 @@ class NewtokiPlugin implements Plugin.PluginBase {
   get settingTranslateLang() {
     return storage.get('newtoki_translateLang') || 'en';
   }
-
 
   async translateService(
     text: string,
@@ -324,7 +328,10 @@ class NewtokiPlugin implements Plugin.PluginBase {
     let name = $('section.novel-detail .nd-info h1').text().trim();
     const cover =
       $('section.novel-detail .nd-thumb img').attr('src') || defaultCover;
-    const authorText = $('section.novel-detail .nd-meta span').first().text().trim();
+    const authorText = $('section.novel-detail .nd-meta span')
+      .first()
+      .text()
+      .trim();
     let summary = $('section.novel-detail .nd-desc').text().trim();
     let genres = $('section.novel-detail .hero-v2-tags a')
       .map((_i: number, el: any) => $(el).text().replace('#', '').trim())
@@ -345,7 +352,7 @@ class NewtokiPlugin implements Plugin.PluginBase {
         chapters.push({
           name: chapterName || `${epNum}화`,
           path: chapterPath,
-          releaseTime,
+          releaseTime: this.convertDate(releaseTime),
           chapterNumber: epNum ? parseInt(epNum) : undefined,
         });
       }
@@ -375,7 +382,11 @@ class NewtokiPlugin implements Plugin.PluginBase {
         for (const ch of chapters) {
           chapterNames += ch.name + '\n';
         }
-        const translated = await this.translateService(chapterNames, undefined, 'ko');
+        const translated = await this.translateService(
+          chapterNames,
+          undefined,
+          'ko',
+        );
         const translatedArr = translated.split('\n');
         for (let i = 0; i < chapters.length; i++) {
           chapters[i].name = translatedArr[i]?.trim() || chapters[i].name;
@@ -397,6 +408,13 @@ class NewtokiPlugin implements Plugin.PluginBase {
     return novel;
   }
 
+  // Format: "yy. mm. dd."
+  convertDate(date: string) {
+    const [yy, mm, dd] = date.split('.').map(s => s.trim());
+    if (!dd || !mm || !yy) return null;
+    return `20${yy}-${mm}-${dd}`;
+  }
+
   async parseChapter(chapterPath: string): Promise<string> {
     const url = `${this.site}${chapterPath}`;
     const userAgent = getUserAgent();
@@ -405,11 +423,13 @@ class NewtokiPlugin implements Plugin.PluginBase {
       headers: { ...this.defaultHeaders(), 'User-Agent': userAgent },
     });
 
-    const tokenMatch = pageHtml.match(
-      /\\"token\\":\\"(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?)\\"/,
-    ) || pageHtml.match(
-      /"token":"(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?)"/,
-    );
+    const tokenMatch =
+      pageHtml.match(
+        /\\"token\\":\\"(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?)\\"/,
+      ) ||
+      pageHtml.match(
+        /"token":"(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)?)"/,
+      );
     if (!tokenMatch) {
       return '<p>Unable to load content.</p>';
     }
