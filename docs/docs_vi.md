@@ -75,7 +75,7 @@ npm run dev:start
 
 **Khuyên dùng!** Đây là môi trường mạnh mẽ mô phỏng chính xác React Native app (hỗ trợ lưu trữ persistent cookie, sandbox, fetch qua NodeJS). Giúp bạn dễ dàng test các trang web chặn Cloudflare/DDOS phức tạp.
 
-Mở terminal ở thư mục gốc, di chuyển vào thư mục `electron` và khởi động Electron:
+Mở terminal ở thư mục gốc, di chuyển vào thư mục `electron` và khởi động Electron (nhớ cài thư viện trong thư mục này bằng lệnh `npm install` trước khi dùng electron):
 ```bash
 cd electron
 npm run dev
