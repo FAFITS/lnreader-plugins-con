@@ -81,7 +81,7 @@ function spawnBrowserTab() {
 function buildMenu() {
   const template: Electron.MenuItemConstructorOptions[] = [
     {
-      label: 'File',
+      label: 'Control',
       submenu: [
         {
           label: 'Spawn New Tab',
