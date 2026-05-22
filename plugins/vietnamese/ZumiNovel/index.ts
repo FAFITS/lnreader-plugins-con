@@ -127,7 +127,7 @@ class ZumiNovelPlugin implements Plugin.PluginBase {
   name = 'ZumiNovel';
   icon = 'src/vi/zuminovel/icon.png';
   site = SITE;
-  version = '1.0.5';
+  version = '1.0.6';
 
   pluginSettings: Plugin.PluginSettings = {
     showRaw: {
@@ -283,19 +283,16 @@ class ZumiNovelPlugin implements Plugin.PluginBase {
 
     const url = `${this.site}/api/novels/${encodeURIComponent(slug)}`;
     let json: { success?: boolean; data?: ZumiNovel } | null = null;
-    try {
-      const res = await fetchApi(url, {
-        headers: { Accept: 'application/json', Referer: this.site + '/' },
-      });
-      if (!res.ok) {
-        return novel;
-      }
-      json = await res.json();
-    } catch {
-      return novel;
+    const res = await fetchApi(url, {
+      headers: { Accept: 'application/json', Referer: this.site + '/' },
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP Error: ${res.status}`);
     }
+    json = await res.json();
 
-    if (!json?.success || !json?.data) return novel;
+    if (!json?.success || !json?.data)
+      throw new Error('Không lấy được dữ liệu truyện');
     const data: ZumiNovel = json.data;
 
     if (data.id || data._id) {
@@ -403,20 +400,17 @@ class ZumiNovelPlugin implements Plugin.PluginBase {
       data?: { title?: string; content?: string };
     };
     let json: ChapterApiResponse | null = null;
-    try {
-      const res = await fetchApi(apiUrl, {
-        headers: {
-          Accept: 'application/json',
-          Referer: `${this.site}${cleanPath}`,
-        },
-      });
-      if (!res.ok) return '';
-      json = await res.json();
-    } catch {
-      return '';
-    }
+    const res = await fetchApi(apiUrl, {
+      headers: {
+        Accept: 'application/json',
+        Referer: `${this.site}${cleanPath}`,
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    json = await res.json();
 
-    if (!json?.success || !json?.data) return '';
+    if (!json?.success || !json?.data)
+      throw new Error('Không có nội dung chương');
 
     const title = String(json.data.title || '').trim();
     let content = String(json.data.content || '');

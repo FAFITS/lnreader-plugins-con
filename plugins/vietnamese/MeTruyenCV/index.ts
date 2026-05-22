@@ -106,7 +106,7 @@ class MeTruyenCVPlugin implements Plugin.PluginBase {
   name = 'MeTruyenCV';
   icon = 'src/vi/metruyencv/icon.png';
   site = 'https://metruyencv.com';
-  version = '1.0.3';
+  version = '1.0.4';
 
   async popularNovels(
     pageNo: number,
@@ -198,7 +198,7 @@ class MeTruyenCVPlugin implements Plugin.PluginBase {
     }
 
     const encrypted = json.data.content;
-    if (!encrypted) return '';
+    if (!encrypted) throw new Error('Nội dung chương trống hoặc lỗi');
 
     const content = decryptContent(encrypted, hash);
     return content

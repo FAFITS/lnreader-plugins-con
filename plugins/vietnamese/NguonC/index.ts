@@ -13,7 +13,7 @@ class NguonCPlugin implements Plugin.PluginBase {
   name = 'NguonC';
   icon = 'src/vi/nguonc/icon.png';
   site = SITE;
-  version = '1.0.5';
+  version = '1.0.6';
 
   customJS = 'src/vi/nguonc/player.js';
 
@@ -248,28 +248,23 @@ class NguonCPlugin implements Plugin.PluginBase {
     const movieSlug = chapterPath.substring(0, lastSlash);
     const epSlug = chapterPath.substring(lastSlash + 1);
 
-    try {
-      const url = `${API_BASE}/film/${movieSlug}`;
-      const data = await this.fetchJson(url);
-      const movie = data.movie;
+    const url = `${API_BASE}/film/${movieSlug}`;
+    const data = await this.fetchJson(url);
+    const movie = data.movie;
 
-      if (movie?.episodes) {
-        for (const server of movie.episodes) {
-          for (const ep of server.items || []) {
-            if (ep.slug === epSlug) {
-              return this.buildPlayerHtml({
-                m3u8: ep.m3u8 || '',
-                embed: ep.embed || '',
-              });
-            }
+    if (movie?.episodes) {
+      for (const server of movie.episodes) {
+        for (const ep of server.items || []) {
+          if (ep.slug === epSlug) {
+            return this.buildPlayerHtml({
+              m3u8: ep.m3u8 || '',
+              embed: ep.embed || '',
+            });
           }
         }
       }
-    } catch (e) {
-      console.warn('NguonC: cannot fetch episode data', e);
     }
-
-    return this.buildPlayerHtml({});
+    throw new Error('Không tìm thấy dữ liệu tập phim này');
   }
 
   // ---------- buildPlayerHtml ----------

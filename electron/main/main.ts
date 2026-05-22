@@ -100,8 +100,8 @@ function buildMenu() {
 
 app.whenReady().then(async () => {
   app.userAgentFallback = app.userAgentFallback
-    .replace(/Electron\/[\d\.]+/gi, "")
-    .replace(/ {2,}/g, " ");
+    .replace(/Electron\/[\d\.]+/gi, '')
+    .replace(/ {2,}/g, ' ');
 
   customSession = session.fromPartition('persist:lnreader_plugins');
 

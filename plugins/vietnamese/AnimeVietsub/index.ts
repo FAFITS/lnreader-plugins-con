@@ -13,7 +13,7 @@ class AnimeVietsubPlugin implements Plugin.PluginBase {
   name = 'AnimeVietsub';
   icon = 'src/vi/animevietsub/icon.png';
   site = 'https://animevietsub.site';
-  version = '1.0.17';
+  version = '1.0.18';
   filters = filters;
   customJS = 'src/vi/animevietsub/player.js';
 
@@ -169,6 +169,7 @@ class AnimeVietsubPlugin implements Plugin.PluginBase {
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
     const url = this.site + novelPath;
     const html = await fetchText(url);
+    if (!html) throw new Error('API error: ' + url);
     const $ = loadCheerio(html);
     this.checkCommonBlocked($);
     const novel: Plugin.SourceNovel = {
@@ -223,15 +224,11 @@ class AnimeVietsubPlugin implements Plugin.PluginBase {
     // latest episode page and parse the list-server section.
     const latestEpHref = $('.InfoList li.latest_eps a').first().attr('href');
     if (latestEpHref) {
-      try {
-        const epPageUrl = latestEpHref.startsWith('http')
-          ? latestEpHref
-          : this.site + latestEpHref;
-        const epHtml = await fetchText(epPageUrl);
-        novel.chapters = this.parseEpisodeList(epHtml);
-      } catch (e) {
-        console.warn('AnimeVietsub: cannot fetch episode list page', e);
-      }
+      const epPageUrl = latestEpHref.startsWith('http')
+        ? latestEpHref
+        : this.site + latestEpHref;
+      const epHtml = await fetchText(epPageUrl);
+      novel.chapters = this.parseEpisodeList(epHtml);
     }
 
     return novel;
@@ -280,7 +277,7 @@ class AnimeVietsubPlugin implements Plugin.PluginBase {
   async parseChapter(chapterPath: string): Promise<string> {
     const url = this.site + chapterPath;
     const html = await fetchText(url);
-
+    if (!html) throw new Error('API error: ' + url);
     // ── 1. Try extracting window.PLAYER_DATA from inline scripts ──
     const pdMatch = html.match(
       /window\.PLAYER_DATA\s*=\s*(\{[\s\S]*?\})\s*;?\s*<\/script>/,

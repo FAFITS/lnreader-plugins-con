@@ -204,7 +204,7 @@ class MotTruyenPlugin implements Plugin.PluginBase {
   name = 'Mọt Truyện';
   icon = 'src/vi/mottruyen/icon.png';
   site = WEB_HOST;
-  version = '1.0.1';
+  version = '1.0.2';
 
   async popularNovels(
     pageNo: number,
@@ -290,7 +290,7 @@ class MotTruyenPlugin implements Plugin.PluginBase {
       `/api/v1/story/${storyId}/chapter/${chapterNo}/encryption?password=null`,
     );
     const cipher = extractCipher(json);
-    if (!cipher) return '';
+    if (!cipher) throw new Error('Không tìm thấy dữ liệu mã hóa của chương');
 
     const decryptedText = decryptChapterPayload(cipher);
     let parsed: any;
@@ -308,7 +308,7 @@ class MotTruyenPlugin implements Plugin.PluginBase {
         ? parsed.data
         : parsed,
     );
-    if (!content) return '';
+    if (!content) throw new Error('Không tìm thấy nội dung chương');
 
     const $ = load(content);
     $('br').replaceWith('\n');

@@ -10,7 +10,7 @@ class LNKuroPlugin implements Plugin.PluginBase {
   name = 'LNKuro';
   icon = 'src/vi/lnkuro/icon.png';
   site = 'https://lnkuro.top';
-  version = '1.0.3';
+  version = '1.0.4';
   filters = {
     genre: {
       label: 'Thể loại',
@@ -202,6 +202,7 @@ class LNKuroPlugin implements Plugin.PluginBase {
   }
   async parseChapter(chapterPath: string): Promise<string> {
     const response = await fetchText(`${this.site}${chapterPath}`);
+    if (!response) throw new Error(`API error: ${this.site}${chapterPath}`);
     const $ = loadCheerio(response);
     const chapterElementRaw = $('.entry-content.single-page');
     chapterElementRaw.find('#kuro-chapter-nav-wrapper').remove();
@@ -237,7 +238,8 @@ class LNKuroPlugin implements Plugin.PluginBase {
       })
       .remove();
     const chapterContent = chapterElementRaw.html()!.trim()!;
-    if (chapterContent.length <= '<p></p>'.length) return '';
+    if (chapterContent.length <= '<p></p>'.length)
+      throw new Error('Chương không có nội dung hoặc bị lỗi');
     return chapterContent;
   }
   async searchNovels(
