@@ -59,13 +59,18 @@ export default PLUGINS;
 
 Trong quá trình phát triển Plugin, bạn sẽ cần kiểm tra xem code của mình có hoạt động đúng hay không. Repository này cung cấp 3 phương pháp chính để gỡ lỗi, từ nhẹ nhất đến giống thực tế nhất:
 
+> [!WARNING]
+> Mã webview (Custom JS) không hỗ trợ hot-reload của Vite!
+> Chạy lệnh `npm run build:full` mỗi khi thay đổi mã.
+
+
 ### 1. WebUI Playground (Khởi chạy trên trình duyệt web)
 
 Đây là môi trường mô phỏng nhanh nhất, sử dụng trực tiếp trình duyệt (Chrome, Edge...) của bạn. Thích hợp để test logic parse, lọc HTML nhanh chóng.
 
 Mở terminal ở thư mục gốc và chạy:
 ```bash
-npm run dev:start
+npm run dev
 ```
 
 - Lệnh này sẽ tự động biên dịch và khởi chạy một Web Server. Truy cập vào `http://localhost:3000`.
