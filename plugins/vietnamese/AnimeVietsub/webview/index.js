@@ -245,7 +245,7 @@
                   });
                   var blobUrl = URL.createObjectURL(blob);
                   if (modeLabel)
-                    modeLabel.textContent = 'm3u8 mode (Dynamic AVS Loader)';
+                    modeLabel.textContent = 'm3u8 mode (inject_js)';
                   buildVideoPlayer(target, [{ file: blobUrl, type: 'hls' }]);
                 } else {
                   showError('Decrypted result is invalid.');
