@@ -88,16 +88,18 @@ const pluginSettingTranslate: Plugin.SelectSetting = {
   value: 'en',
 };
 
+const SITE = 'https://sbxh2.com';
+
 class NewtokiPlugin implements Plugin.PluginBase {
   id = 'newtoki.novel';
   name = 'Newtoki';
   icon = 'src/kr/newtoki/icon.png';
-  site = 'https://sbxh1.com';
-  version = '1.0.3';
+  site = SITE;
+  version = '1.0.4';
 
   imageRequestInit: Plugin.ImageRequestInit = {
     headers: {
-      Referer: 'https://sbxh1.com',
+      Referer: SITE + '/',
     },
   };
 

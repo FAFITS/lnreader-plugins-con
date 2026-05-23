@@ -1,6 +1,9 @@
 export const readerMockScript = String.raw`
 <script>
   console.log('[Electron Mock] Initializing WebView Reader JS Context APIs...');
+
+  const ORIGINAL_FETCH = Symbol();
+  window[ORIGINAL_FETCH] = window.fetch;
   
   window.ReactNativeWebView = {
     postMessage: (msg) => {
@@ -111,7 +114,7 @@ export const readerMockScript = String.raw`
       modifiedInit.headers = modifiedHeaders;
 
       console.log('[LNReader] fetch proxying to:', url);
-      return fetch(proxyUrl, modifiedInit);
+      return window[ORIGINAL_FETCH](proxyUrl, modifiedInit);
     }
   };
 </script>
