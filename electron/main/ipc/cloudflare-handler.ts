@@ -313,13 +313,14 @@ export async function solveCloudflareTurnstile(
   sitekey: string,
 ): Promise<string> {
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1000,
+    height: 800,
     show: true,
     webPreferences: {
       session: customSession,
-      offscreen: false,
-      sandbox: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      webSecurity: true,
     },
   });
 
